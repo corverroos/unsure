@@ -1,0 +1,50 @@
+syntax = "proto3";
+package enginepb;
+
+import "github.com/luno/reflex/reflexpb/reflex.proto";
+
+service Engine {
+  rpc Ping (Empty) returns (Empty) {}
+  rpc Stream (reflexpb.StreamRequest) returns (stream reflexpb.Event) {}
+  rpc StartMatch(StartMatchReq) returns (Empty) {}
+  rpc JoinRound(JoinRoundReq) returns (JoinRoundRes) {}
+  rpc CollectRound(CollectRoundReq) returns (CollectRoundRes) {}
+  rpc SubmitRound(SubmitRoundReq) returns (Empty) {}
+}
+
+message Empty {}
+
+message StartMatchReq {
+  string team = 1;
+  int64 players = 2;
+}
+
+message JoinRoundReq {
+  string team = 1;
+  string player = 2;
+}
+
+message JoinRoundRes {
+  bool included = 1;
+}
+
+message CollectRoundReq {
+  string team = 1;
+  string player = 2;
+}
+
+message CollectRoundRes {
+  repeated CollectPlayer players = 1;
+}
+
+message CollectPlayer {
+  string name = 1;
+  int64 rank = 2;
+  int64 part = 3;
+}
+
+message SubmitRoundReq {
+  string team = 1;
+  string player = 2;
+  int64 total = 3;
+}
