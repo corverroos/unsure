@@ -33,6 +33,7 @@ A round consists of the following stages:
 Notes:
 - Each stage has a timeout, after which the round is failed.
 - Players should communicate their inclusion, ranks and parts amongst each others in order to submit the correct answer (sum of their parts) in the correct order (included by ascending rank).
+- Players should only communicate via gRPC, players may not share state via databases or other methods.
 
 ## Example
 
@@ -47,3 +48,8 @@ go run engine/engine/main.go --db_recreate
 go run loser/loser/main.go --db_recreate --engine_address="127.0.0.1:12048"
 ```
 
+## TODO
+
+The following has not been implemented yet:
+ - Dynamic fate probability based on round index; the higher the round, the higher the error rate.
+ - Support for concurrent teams. Event metadata should be added to map events to teams. Authentication should be added to prevent inter-team attacks.
