@@ -75,10 +75,11 @@ func (c *client) StartMatch(ctx context.Context, team string, players int) error
 	return err
 }
 
-func (c *client) JoinRound(ctx context.Context, team string, player string, round int64) (bool, error) {
+func (c *client) JoinRound(ctx context.Context, team string, player string, roundID int64) (bool, error) {
 	res, err := c.rpcClient.JoinRound(ctx, &pb.JoinRoundReq{
-		Team:   team,
-		Player: player,
+		Team:    team,
+		Player:  player,
+		RoundId: roundID,
 	})
 	if err != nil {
 		return false, err
@@ -86,10 +87,11 @@ func (c *client) JoinRound(ctx context.Context, team string, player string, roun
 	return res.Included, nil
 }
 
-func (c *client) CollectRound(ctx context.Context, team string, player string, round int64) (*engine.CollectRoundRes, error) {
+func (c *client) CollectRound(ctx context.Context, team string, player string, roundID int64) (*engine.CollectRoundRes, error) {
 	res, err := c.rpcClient.CollectRound(ctx, &pb.CollectRoundReq{
-		Team:   team,
-		Player: player,
+		Team:    team,
+		Player:  player,
+		RoundId: roundID,
 	})
 	if err != nil {
 		return nil, err
@@ -97,11 +99,12 @@ func (c *client) CollectRound(ctx context.Context, team string, player string, r
 	return protocp.CollectRoundResFromProto(res), nil
 }
 
-func (c *client) SubmitRound(ctx context.Context, team string, player string, round int64, total int) error {
+func (c *client) SubmitRound(ctx context.Context, team string, player string, roundID int64, total int) error {
 	_, err := c.rpcClient.SubmitRound(ctx, &pb.SubmitRoundReq{
-		Team:   team,
-		Player: player,
-		Total:  int64(total),
+		Team:    team,
+		Player:  player,
+		RoundId: roundID,
+		Total:   int64(total),
 	})
 	return err
 }
