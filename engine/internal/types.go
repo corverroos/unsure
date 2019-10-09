@@ -36,24 +36,24 @@ type RoundState struct {
 	Players []RoundPlayerState
 }
 
-func (r RoundState) Value() (driver.Value, error) {
-	return json.MarshalIndent(r, "", " ")
+func (rs RoundState) Value() (driver.Value, error) {
+	return json.MarshalIndent(rs, "", " ")
 }
 
-func (r *RoundState) Scan(src interface{}) error {
+func (rs *RoundState) Scan(src interface{}) error {
 	var s sql.NullString
 	if err := s.Scan(src); err != nil {
 		return err
 	}
-	*r = RoundState{}
+	*rs = RoundState{}
 	if !s.Valid {
 		return nil
 	}
-	return json.Unmarshal([]byte(s.String), r)
+	return json.Unmarshal([]byte(s.String), rs)
 }
 
-func (r RoundState) GetPlayer(player string) (int, RoundPlayerState, bool) {
-	for i, m := range r.Players {
+func (rs RoundState) GetPlayer(player string) (int, RoundPlayerState, bool) {
+	for i, m := range rs.Players {
 		if m.Name == player {
 			return i, m, true
 		}
@@ -61,9 +61,9 @@ func (r RoundState) GetPlayer(player string) (int, RoundPlayerState, bool) {
 	return 0, RoundPlayerState{}, false
 }
 
-func (r RoundState) GetSubmitOrder() []RoundPlayerState {
+func (rs RoundState) GetSubmitOrder() []RoundPlayerState {
 	var res []RoundPlayerState
-	for _, m := range r.Players {
+	for _, m := range rs.Players {
 		if !m.Included {
 			continue
 		}
@@ -77,9 +77,9 @@ func (r RoundState) GetSubmitOrder() []RoundPlayerState {
 	return res
 }
 
-func (r RoundState) GetTotal(player string) int {
+func (rs RoundState) GetTotal(player string) int {
 	var res int
-	for _, m := range r.Players {
+	for _, m := range rs.Players {
 		res += m.Parts[player]
 	}
 	return res
@@ -139,26 +139,26 @@ func (ms *MatchSummary) Scan(src interface{}) error {
 
 type RoundStatus int
 
-func (m RoundStatus) Enum() int {
-	return int(m)
+func (rs RoundStatus) Enum() int {
+	return int(rs)
 }
 
-func (m RoundStatus) Valid() bool {
-	return m > RoundStatusUnknown && m < roundStatusSentinel
+func (rs RoundStatus) Valid() bool {
+	return rs > RoundStatusUnknown && rs < roundStatusSentinel
 }
 
-func (m RoundStatus) ShiftStatus() {}
+func (rs RoundStatus) ShiftStatus() {}
 
 // ThisOrNext returns true if m2 is equaled to m or it's next non-failed state.
-func (m RoundStatus) ThisOrNext(m2 RoundStatus) bool {
+func (rs RoundStatus) ThisOrNext(m2 RoundStatus) bool {
 	if !m2.Valid() || m2 == RoundStatusFailed {
 		return false
 	}
-	return m == m2 || (RoundStatus(int(m)+1) == m2)
+	return rs == m2 || (RoundStatus(int(rs)+1) == m2)
 }
 
-func (m RoundStatus) ReflexType() int {
-	return engine.RoundEventOffset + int(m) // Hack to combine Match and Round events in same table.
+func (rs RoundStatus) ReflexType() int {
+	return engine.RoundEventOffset + int(rs) // Hack to combine Match and Round events in same table.
 }
 
 const (

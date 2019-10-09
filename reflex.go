@@ -18,7 +18,7 @@ func ConsumeForever(getCtx func() context.Context, consume reflex.ConsumeFunc,
 		ctx := getCtx()
 
 		err := consume(ctx, consumer, opts...)
-		if errors.IsAny(err, context.Canceled, reflex.ErrStopped, fate.ErrTempt) {
+		if errors.IsAny(err, context.Canceled, context.DeadlineExceeded, reflex.ErrStopped, fate.ErrTempt) {
 			// Just retry on expected errors.
 			time.Sleep(time.Millisecond * 100) // Don't spin
 			continue

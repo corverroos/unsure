@@ -17,6 +17,10 @@ import (
 	"github.com/luno/jettison/log"
 )
 
+var (
+	crashTTL = flag.Duration("crash_ttl", time.Minute, "max duration before the app will crash")
+)
+
 func Bootstrap() {
 	initJettisonLogger()
 	flag.Parse()
@@ -30,6 +34,15 @@ func initJettisonLogger() {
 
 func WaitForShutdown() {
 	ch := make(chan os.Signal, 1)
+
+	// crash before TTL
+	go func() {
+		nanos := rand.Int63n(crashTTL.Nanoseconds())
+		time.Sleep(time.Nanosecond * time.Duration(nanos))
+		log.Info(nil, "app: The end is nigh")
+		ch <- syscall.SIGKILL
+	}()
+
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT)
 	s := <-ch
 	log.Info(nil, "app: Received OS signal", j.KV("signal", s))

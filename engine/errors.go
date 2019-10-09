@@ -19,4 +19,6 @@ var (
 	ErrNonIncludedSubmit = errors.New("submission by non-joined player", j.C("ERR_8c5be353e22536fd"))
 	ErrAlreadySubmitted  = errors.New("already submitted", j.C("ERR_95e55cdc7429f3a5"))
 	ErrConcurrentUpdates = errors.New("concurrent round updates", j.C("ERR_b1294c9cc2be8b60"))
+	ErrRoundNotFound     = errors.New("round not found for team", j.C("ERR_6139c6925dbcd93b"))
+	ErrInactiveRound     = errors.New("round not part of active match", j.C("ERR_3a71fbdb00c931fd"))
 )

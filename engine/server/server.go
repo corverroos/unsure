@@ -51,7 +51,8 @@ func (srv *Server) StartMatch(ctx context.Context, req *pb.StartMatchReq) (*pb.E
 }
 
 func (srv *Server) JoinRound(ctx context.Context, req *pb.JoinRoundReq) (*pb.JoinRoundRes, error) {
-	included, err := ops.JoinRound(unsure.ContextWithFate(ctx, unsure.DefaultFateP()), srv.b, req.Team, req.Player)
+	included, err := ops.JoinRound(unsure.ContextWithFate(ctx, unsure.DefaultFateP()), srv.b, req.Team,
+		req.Player, req.RoundId)
 	if err != nil {
 		return nil, err
 	}
@@ -60,15 +61,16 @@ func (srv *Server) JoinRound(ctx context.Context, req *pb.JoinRoundReq) (*pb.Joi
 
 func (srv *Server) CollectRound(ctx context.Context, req *pb.CollectRoundReq) (*pb.CollectRoundRes, error) {
 	res, err := ops.CollectRound(unsure.ContextWithFate(ctx, unsure.DefaultFateP()),
-		srv.b, req.Team, req.Player)
+		srv.b, req.Team, req.Player, req.RoundId)
 	if err != nil {
 		return nil, err
 	}
-	return protocp.CollectRoundResToProto(res)
+	return protocp.CollectRoundResToProto(res), nil
 }
 
 func (srv *Server) SubmitRound(ctx context.Context, req *pb.SubmitRoundReq) (*pb.Empty, error) {
-	err := ops.SumbitRound(unsure.ContextWithFate(ctx, unsure.DefaultFateP()), srv.b, req.Team, req.Player, int(req.Total))
+	err := ops.SumbitRound(unsure.ContextWithFate(ctx, unsure.DefaultFateP()), srv.b, req.Team, req.Player,
+		req.RoundId, int(req.Total))
 	if err != nil {
 		return nil, err
 	}

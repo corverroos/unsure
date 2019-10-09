@@ -27,8 +27,8 @@ func StartMatch(ctx context.Context, b Backends, team string, players int) error
 	return err
 }
 
-func JoinRound(ctx context.Context, b Backends, team, player string) (bool, error) {
-	r, err := getRound(ctx, b, team)
+func JoinRound(ctx context.Context, b Backends, team, player string, roundID int64) (bool, error) {
+	r, err := getRound(ctx, b, team, roundID)
 	if err != nil {
 		return false, err
 	}
@@ -78,7 +78,7 @@ func ensureUniqRanks(states []internal.RoundPlayerState) error {
 	return nil
 }
 
-func getRound(ctx context.Context, b Backends, team string) (*internal.Round, error) {
+func getRound(ctx context.Context, b Backends, team string, roundID int64) (*internal.Round, error) {
 	m, err := matches.LookupActive(ctx, b.EngineDB().DB, team)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, engine.ErrNoActiveMatch
@@ -86,11 +86,24 @@ func getRound(ctx context.Context, b Backends, team string) (*internal.Round, er
 		return nil, err
 	}
 
-	return rounds.Lookup(ctx, b.EngineDB().DB, m.ID)
+	r, err := rounds.Lookup(ctx, b.EngineDB().DB, roundID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, engine.ErrRoundNotFound
+	} else if err != nil {
+		return nil, err
+	}
+
+	if r.Team != team {
+		return nil, engine.ErrRoundNotFound
+	} else if m.ID != r.MatchID {
+		return nil, engine.ErrInactiveRound
+	}
+
+	return r, nil
 }
 
-func CollectRound(ctx context.Context, b Backends, team, player string) (*engine.CollectRoundRes, error) {
-	r, err := getRound(ctx, b, team)
+func CollectRound(ctx context.Context, b Backends, team, player string, roundID int64) (*engine.CollectRoundRes, error) {
+	r, err := getRound(ctx, b, team, roundID)
 	if err != nil {
 		return nil, err
 	}
@@ -112,12 +125,13 @@ func CollectRound(ctx context.Context, b Backends, team, player string) (*engine
 		return nil, f.err(engine.ErrNonIncludedDraw)
 	}
 
-	var res engine.CollectRoundRes
+	res := engine.CollectRoundRes{
+		Rank: ms.Rank,
+	}
 	for _, m := range s.Players {
 		res.Players = append(res.Players, engine.CollectPlayer{
 			Name: m.Name,
-			Rank: m.Rank,
-			Part: ms.Parts[m.Name],
+			Part: m.Parts[m.Name],
 		})
 	}
 
@@ -132,8 +146,8 @@ func CollectRound(ctx context.Context, b Backends, team, player string) (*engine
 	return &res, nil
 }
 
-func SumbitRound(ctx context.Context, b Backends, team, player string, total int) (err error) {
-	r, err := getRound(ctx, b, team)
+func SumbitRound(ctx context.Context, b Backends, team, player string, roundID int64, total int) (err error) {
+	r, err := getRound(ctx, b, team, roundID)
 	if err != nil {
 		return err
 	}

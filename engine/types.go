@@ -32,11 +32,11 @@ const (
 )
 
 type CollectRoundRes struct {
-	Players []CollectPlayer `protocp:"1"`
+	Rank    int             `protocp:"1"`
+	Players []CollectPlayer `protocp:"2"`
 }
 
 type CollectPlayer struct {
 	Name string `protocp:"1"`
-	Rank int    `protocp:"2"`
-	Part int    `protocp:"3"`
+	Part int    `protocp:"2"`
 }

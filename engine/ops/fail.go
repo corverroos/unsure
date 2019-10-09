@@ -26,6 +26,8 @@ var roundFailErrors = map[error]bool{
 	engine.ErrNonIncludedSubmit: true,
 	engine.ErrAlreadySubmitted:  false,
 	engine.ErrConcurrentUpdates: false,
+	engine.ErrRoundNotFound:     false, // Cannot fail round not found
+	engine.ErrInactiveRound:     false, // Cannot fail inactive round
 }
 
 type failer struct {
