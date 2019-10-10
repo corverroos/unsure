@@ -25,14 +25,14 @@ It is called the **unsure tournament** since it explicitly introduces lots of er
 
 A round consists of the following stages:
 - **Join**: The round has been started and all players should join the round (`engine.JoinRound`). The engine will respond indicating if the player is **included** in this round or not.
-- **Collect**: All included players should collect their rank and parts (`engine.CollectRound`). The engine responds with a rank for the player as well as a map of **parts** for each player. 
+- **Collect**: All included players should collect their rank and subset of parts (`engine.CollectRound`). The engine responds with a rank for the player as well as a map of **parts** for each player.
 - **Submit**: In ascending order by rank, each included player should submit the total of his/her parts (`engine.SubmitRound`).
 - **Success**: The team has successfully completed the round.
 - **Failed**: The team has failed the round by not following the above rules.
 
 Notes:
 - Each stage has a timeout, after which the round is failed.
-- Players should communicate their inclusion, ranks and parts amongst each others in order to submit the correct answer (sum of their parts) in the correct order (included by ascending rank).
+- Players should communicate their inclusion, ranks and parts amongst each others in order to submit the correct total (sum of their parts) in the correct order (included by ascending rank).
 - Players should only communicate via gRPC, players may not share state via databases or other methods.
 
 ## Example
@@ -47,6 +47,19 @@ go run engine/engine/main.go --db_recreate
 # In another tab, start a single loser player
 go run loser/loser/main.go --db_recreate --engine_address="127.0.0.1:12048"
 ```
+
+## Parts
+
+Parts can be visualised as a 2D matrix with the players as columns and rows and the cells as random numbers between -100 and 100. A row represents the subset of parts received by that player in the collect stage. The total a player should submit is the sum of his/her column.
+```
+|          | player A | player B | player C | 
+| player A |       10 |       33 |      -34 |  <- Parts received by player A in the collect stage.
+| player B |       -1 |       -3 |       38 |  <- Parts received by player B in the collect stage.
+| player C |       48 |      -66 |       23 |  <- Parts received by player C in the collect stage.
+---------------------------------------------
+| Total    |       57 |      -36 |       27 |  <- Totals players should submit
+```
+
 
 ## TODO
 
