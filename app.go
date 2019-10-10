@@ -36,12 +36,15 @@ func WaitForShutdown() {
 	ch := make(chan os.Signal, 1)
 
 	// crash before TTL
-	go func() {
-		nanos := rand.Int63n(crashTTL.Nanoseconds())
-		time.Sleep(time.Nanosecond * time.Duration(nanos))
-		log.Info(nil, "app: The end is nigh")
-		ch <- syscall.SIGKILL
-	}()
+	if !*cheatFate {
+		go func() {
+			max := int64(float64(crashTTL.Nanoseconds()) * *defaultFateP)
+			nanos := rand.Int63n(max)
+			time.Sleep(time.Nanosecond * time.Duration(nanos))
+			log.Info(nil, "app: The end is nigh")
+			ch <- syscall.SIGKILL
+		}()
+	}
 
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT)
 	s := <-ch
