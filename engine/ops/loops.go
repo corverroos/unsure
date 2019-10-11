@@ -83,8 +83,8 @@ func makeCompleteMatch(b Backends) consumeReq {
 	return newConsumeReq(consumerMatchComplete, f)
 }
 
-// makeAdvanceRound returns a consumeReq that times out a round if it too long in
-// a specific state.
+// makeAdvanceRound returns a consumeReq that advances a round to its
+// subsequent state if its checks pass.
 func makeAdvanceRound(b Backends, status internal.RoundStatus) consumeReq {
 	f := func(ctx context.Context, f fate.Fate, e *reflex.Event) error {
 		if !reflex.IsType(e.Type, status) {

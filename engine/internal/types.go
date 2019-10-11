@@ -119,7 +119,7 @@ type MatchSummary struct {
 	Duration      time.Duration
 }
 
-func (ms *MatchSummary) Value() (driver.Value, error) {
+func (ms MatchSummary) Value() (driver.Value, error) {
 	return json.MarshalIndent(ms, "", " ")
 }
 

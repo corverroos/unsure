@@ -33,6 +33,11 @@ func JoinRound(ctx context.Context, b Backends, team, player string, roundID int
 		return false, err
 	}
 
+	m, err := matches.LookupActive(ctx, b.EngineDB().DB, team)
+	if err != nil {
+		return false, err
+	}
+
 	f := newFailer(ctx, b, r)
 
 	if !internal.RoundStatusJoin.ThisOrNext(r.Status) {
@@ -48,8 +53,21 @@ func JoinRound(ctx context.Context, b Backends, team, player string, roundID int
 		return false, f.err(engine.ErrAlreadyExcluded)
 	}
 
-	include := rand.Float64() > 0.5
 	rank := rand.Intn(100)
+	include := rand.Float64() > 0.5
+
+	// If this is the lat player to join, ensure at least one is included.
+	if len(s.Players) == m.Players-1 {
+		var has bool
+		for _, ps := range s.Players {
+			if ps.Included {
+				has = true
+			}
+		}
+		if !has {
+			include = true
+		}
+	}
 
 	s.Players = append(s.Players, internal.RoundPlayerState{
 		Name:     player,
@@ -156,7 +174,7 @@ func SumbitRound(ctx context.Context, b Backends, team, player string, roundID i
 
 	f := newFailer(ctx, b, r)
 
-	if internal.RoundStatusSubmit.ThisOrNext(r.Status) {
+	if !internal.RoundStatusSubmit.ThisOrNext(r.Status) {
 		return f.err(engine.ErrNonGoSubmit)
 	}
 

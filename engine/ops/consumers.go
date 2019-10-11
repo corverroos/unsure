@@ -192,7 +192,7 @@ func checkToSubmit(_ *internal.Match, r *internal.Round) (bool, error) {
 	s := r.State
 
 	for _, m := range s.Players {
-		if !m.Collected {
+		if !m.Collected && m.Included {
 			return false, nil
 		}
 	}
