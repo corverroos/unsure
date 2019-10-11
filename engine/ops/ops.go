@@ -41,9 +41,11 @@ func JoinRound(ctx context.Context, b Backends, team, player string, roundID int
 
 	s := r.State
 
-	_, _, ok := s.GetPlayer(player)
-	if ok {
+	_, ms, ok := s.GetPlayer(player)
+	if ok && ms.Included {
 		return false, f.err(engine.ErrAlreadyJoined)
+	} else if ok && !ms.Included {
+		return false, f.err(engine.ErrAlreadyExcluded)
 	}
 
 	include := rand.Float64() > 0.5

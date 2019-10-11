@@ -169,12 +169,13 @@ func execMysql(stdIn string, db string, u *dburl.URL) error {
 			args = append(args, "-p", p)
 		}
 	}
+
 	args = append(args, db)
 	cmd := exec.Command("mysql", args...)
 	cmd.Stdin = strings.NewReader(stdIn)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return errors.Wrap(err, "mysql error", j.KV("out", out))
+		return errors.Wrap(err, "mysql error", j.KV("out", string(out)))
 	}
 	return nil
 }

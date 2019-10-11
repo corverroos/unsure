@@ -12,6 +12,7 @@ var (
 	ErrNonGoSubmit       = errors.New("submitting when round not go", j.C("ERR_0d801e7015f73b13"))
 	ErrNonSetDraw        = errors.New("drawing when round not set", j.C("ERR_a8223c9740db7884"))
 	ErrAlreadyJoined     = errors.New("player already joined round", j.C("ERR_9a15fbba1632ca47"))
+	ErrAlreadyExcluded   = errors.New("player already excluded from round", j.C("ERR_9a15fbba1632ca47"))
 	ErrUnknownPlayer     = errors.New("unknown player in round", j.C("ERR_7af903a349ee1789"))
 	ErrOutOfOrderSubmit  = errors.New("out of order submission", j.C("ERR_5401aa4803dde9c3"))
 	ErrIncorrectSubmit   = errors.New("submission answer incorrect", j.C("ERR_e823b34b4dd2a625"))
