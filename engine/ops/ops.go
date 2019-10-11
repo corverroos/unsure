@@ -56,7 +56,7 @@ func JoinRound(ctx context.Context, b Backends, team, player string, roundID int
 	rank := rand.Intn(100)
 	include := rand.Float64() > 0.5
 
-	// If this is the lat player to join, ensure at least one is included.
+	// If this is the last player to join, ensure at least one is included.
 	if len(s.Players) == m.Players-1 {
 		var has bool
 		for _, ps := range s.Players {

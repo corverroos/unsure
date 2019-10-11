@@ -107,10 +107,10 @@ func (m MatchStatus) ReflexType() int {
 }
 
 const (
-	MatchStatusUnknown  RoundStatus = 0
+	MatchStatusUnknown  MatchStatus = 0
 	MatchStatusStarted  MatchStatus = 1
 	MatchStatusEnded    MatchStatus = 2
-	matchStatusSentinel MatchStatus = 3 // This may not
+	matchStatusSentinel MatchStatus = 3
 )
 
 type MatchSummary struct {
