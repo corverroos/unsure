@@ -22,6 +22,14 @@ var (
 	jsonLogs = flag.Bool("json_logs", false, "enable json jettison logs")
 )
 
+func crashDuration() (time.Duration, bool) {
+	if crashTTL.Seconds() == 0 {
+		return 0, false
+	}
+	nanos := rand.Int63n(crashTTL.Nanoseconds())
+	return time.Nanosecond * time.Duration(nanos), true
+}
+
 func Bootstrap() {
 	flag.Parse()
 	initJettisonLogger()
@@ -41,11 +49,11 @@ func WaitForShutdown() {
 
 	// crash before TTL
 	go func() {
-		if crashTTL.Seconds() == 0 {
+		d, ok := crashDuration()
+		if !ok {
 			return
 		}
-		nanos := rand.Int63n(crashTTL.Nanoseconds())
-		time.Sleep(time.Nanosecond * time.Duration(nanos))
+		time.Sleep(d)
 		log.Info(nil, "app: The end is nigh")
 		ch <- syscall.SIGKILL
 	}()

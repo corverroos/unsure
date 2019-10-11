@@ -160,19 +160,5 @@ func newConsumeReq(name reflex.ConsumerName, f func(ctx context.Context, f fate.
 
 func startConsume(b Backends, c reflex.Consumable, req consumeReq) {
 	consumer := reflex.NewConsumer(req.name, req.f, req.copts...)
-	go unsure.ConsumeForever(unsureCtx, c.Consume, consumer, req.sopts...)
-}
-
-func unsureCtx() context.Context {
-	max := rand.Intn(60) // Max 60 secs.
-	d := time.Second * time.Duration(max)
-	ctx, cancel := context.WithTimeout(context.Background(), d)
-
-	// Call cancel to satisfy golint.
-	go func() {
-		time.Sleep(d)
-		cancel()
-	}()
-
-	return unsure.ContextWithFate(ctx, unsure.DefaultFateP())
+	go unsure.ConsumeForever(unsure.FatedContext, c.Consume, consumer, req.sopts...)
 }

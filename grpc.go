@@ -100,10 +100,10 @@ func streamClientInterceptor(ctx context.Context, desc *grpc.StreamDesc,
 }
 
 // unaryServerInterceptor returns an interceptor that tempts fate.
-func unaryServerInterceptor(ctx context.Context, req interface{},
+func unaryServerInterceptor(in context.Context, req interface{},
 	info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (
 	interface{}, error) {
-	ctx = ContextWithFate(ctx, DefaultFateP()) // Server injects default fate.
+	ctx := ContextWithFate(in, DefaultFateP()) // Server injects default fate.
 	if err := temptCtx(ctx); err != nil {
 		return nil, err
 	}
@@ -123,19 +123,21 @@ type serverStream struct {
 }
 
 func (ss *serverStream) SendMsg(m interface{}) error {
-	ctx := ContextWithFate(ss.Context(), DefaultFateP()) // Server injects default fate.
-	if err := temptCtx(ctx); err != nil {
+	if err := temptCtx(ss.Context()); err != nil {
 		return err
 	}
 	return ss.ServerStream.SendMsg(m)
 }
 
 func (ss *serverStream) RecvMsg(m interface{}) error {
-	ctx := ContextWithFate(ss.Context(), DefaultFateP()) // Server injects default fate.
-	if err := temptCtx(ctx); err != nil {
+	if err := temptCtx(ss.Context()); err != nil {
 		return err
 	}
 	return ss.ServerStream.RecvMsg(m)
+}
+
+func (ss *serverStream) Context() context.Context {
+	return ContextWithFate(ss.ServerStream.Context(), DefaultFateP()) // Server injects default fate.
 }
 
 // clientStream is a wrapper of a grpc.ClientStream implementation that tempts fate on each msg.

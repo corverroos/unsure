@@ -8,7 +8,9 @@ import (
 	"github.com/corverroos/unsure"
 	"github.com/corverroos/unsure/engine"
 	"github.com/luno/jettison/errors"
+	"github.com/luno/jettison/j"
 	"github.com/luno/jettison/log"
+	"github.com/luno/reflex"
 )
 
 var (
@@ -19,6 +21,32 @@ var (
 
 func StartLoops(b Backends) {
 	go startMatchForever(b)
+	go logHeadForever(b)
+}
+
+func logHeadForever(b Backends) {
+	var delay time.Duration
+	for {
+		time.Sleep(delay)
+		delay = time.Second
+
+		ctx := unsure.FatedContext()
+		cl, err := b.EngineClient().Stream(ctx, "", reflex.WithStreamFromHead())
+		if err != nil {
+			log.Error(ctx, errors.Wrap(err, "log head stream error"))
+			continue
+		}
+		for {
+			e, err := cl.Recv()
+			if err != nil {
+				log.Error(ctx, errors.Wrap(err, "log head recv error"))
+				break
+			}
+			typ := engine.EventType(e.Type.ReflexType())
+			log.Info(ctx, "log head consumed event",
+				j.MKV{"id": e.ForeignIDInt(), "type": typ, "latency": time.Since(e.Timestamp)})
+		}
+	}
 }
 
 func startMatchForever(b Backends) {
@@ -29,12 +57,14 @@ func startMatchForever(b Backends) {
 
 		if errors.Is(err, engine.ErrActiveMatch) {
 			// Match active, just ignore
+			return
 		} else if err != nil {
 			log.Error(ctx, errors.Wrap(err, "start match error"))
 		} else {
 			log.Info(ctx, "match started")
+			return
 		}
 
-		time.Sleep(time.Second * 10)
+		time.Sleep(time.Second)
 	}
 }

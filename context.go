@@ -3,6 +3,7 @@ package unsure
 import (
 	"flag"
 	"testing"
+	"time"
 
 	"github.com/luno/fate"
 	"github.com/luno/jettison/errors"
@@ -46,4 +47,22 @@ func CheatFateForTesting(_ *testing.T) func() {
 	return func() {
 		cheatFate = cache
 	}
+}
+
+// FatedContext returns a new fated context that cancels (crashes) randomly.
+func FatedContext() context.Context {
+	ctx := context.Background()
+
+	if d, ok := crashDuration(); ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, d)
+
+		// Call cancel to satisfy golint.
+		go func() {
+			time.Sleep(d)
+			cancel()
+		}()
+	}
+
+	return ContextWithFate(ctx, DefaultFateP())
 }

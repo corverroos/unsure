@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	httpAddress = flag.String("http_address", ":12047", "engine healthcheck address")
-	grpcAddress = flag.String("grpc_address", ":12048", "engine grpc server address")
+	httpAddress = flag.String("http_address", "localhost:12047", "engine healthcheck address")
+	grpcAddress = flag.String("grpc_address", "localhost:12048", "engine grpc server address")
 )
 
 func main() {

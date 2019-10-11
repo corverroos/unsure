@@ -2,6 +2,8 @@ package engine
 
 const RoundEventOffset = 100
 
+//go:generate stringer -type=EventType -trimprefix=EventType
+
 type EventType int
 
 func (t EventType) Valid() bool {
@@ -32,11 +34,11 @@ const (
 )
 
 type CollectRoundRes struct {
-	Rank    int             `protocp:"1"`
-	Players []CollectPlayer `protocp:"2"`
+	Rank    int
+	Players []CollectPlayer
 }
 
 type CollectPlayer struct {
-	Name string `protocp:"1"`
-	Part int    `protocp:"2"`
+	Name string
+	Part int
 }
