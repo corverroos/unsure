@@ -12,6 +12,7 @@ import (
 	"github.com/corverroos/unsure/engine/internal"
 	"github.com/luno/jettison/errors"
 	"github.com/luno/jettison/j"
+	"github.com/luno/jettison/log"
 )
 
 // startRound idempotently starts a new round with index in the ready state.
@@ -97,11 +98,15 @@ func maybeCompleteMatch(ctx context.Context, b Backends, matchID int64) error {
 		}
 	}
 
+	d := last.Sub(first)
+
 	s := internal.MatchSummary{
 		RoundsSuccess: success,
 		RoundsFailed:  failed,
 		Duration:      last.Sub(first),
 	}
+
+	log.Info(ctx, "match completed", j.MKV{"team": m.Team, "success": success, "fail": failed, "duration": d})
 
 	return matches.EndMatch(ctx, dbc, matchID, s)
 }
@@ -204,7 +209,7 @@ func checkToSuccess(_ *internal.Match, r *internal.Round) (bool, error) {
 	s := r.State
 
 	for _, m := range s.Players {
-		if !m.Submitted {
+		if !m.Submitted && m.Included {
 			return false, nil
 		}
 	}

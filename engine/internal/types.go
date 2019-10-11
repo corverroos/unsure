@@ -80,6 +80,9 @@ func (rs RoundState) GetSubmitOrder() []RoundPlayerState {
 func (rs RoundState) GetTotal(player string) int {
 	var res int
 	for _, m := range rs.Players {
+		if !m.Included {
+			continue
+		}
 		res += m.Parts[player]
 	}
 	return res
