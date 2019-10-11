@@ -11,6 +11,7 @@ import (
 	"github.com/corverroos/unsure/engine/internal"
 	"github.com/luno/jettison/errors"
 	"github.com/luno/jettison/j"
+	"github.com/luno/jettison/log"
 )
 
 func StartMatch(ctx context.Context, b Backends, team string, players int) error {
@@ -46,10 +47,10 @@ func JoinRound(ctx context.Context, b Backends, team, player string, roundID int
 
 	s := r.State
 
-	_, ms, ok := s.GetPlayer(player)
-	if ok && ms.Included {
+	_, ps, ok := s.GetPlayer(player)
+	if ok && ps.Included {
 		return false, f.err(engine.ErrAlreadyJoined)
-	} else if ok && !ms.Included {
+	} else if ok && !ps.Included {
 		return false, f.err(engine.ErrAlreadyExcluded)
 	}
 
@@ -83,6 +84,8 @@ func JoinRound(ctx context.Context, b Backends, team, player string, roundID int
 	if err != nil {
 		return false, err
 	}
+
+	log.Info(ctx, "round joined", j.MKV{"round": r.Index, "player": player, "included": include})
 
 	return include, nil
 }
@@ -136,32 +139,34 @@ func CollectRound(ctx context.Context, b Backends, team, player string, roundID 
 
 	s := r.State
 
-	n, ms, ok := s.GetPlayer(player)
+	n, ps, ok := s.GetPlayer(player)
 	if !ok {
 		return nil, f.err(engine.ErrUnknownPlayer)
 	}
 
-	if !ms.Included {
+	if !ps.Included {
 		return nil, f.err(engine.ErrNonIncludedDraw)
 	}
 
 	res := engine.CollectRoundRes{
-		Rank: ms.Rank,
+		Rank: ps.Rank,
 	}
-	for _, m := range s.Players {
+	for name, part := range ps.Parts {
 		res.Players = append(res.Players, engine.CollectPlayer{
-			Name: m.Name,
-			Part: m.Parts[m.Name],
+			Name: name,
+			Part: part,
 		})
 	}
 
-	if !ms.Collected {
+	if !ps.Collected {
 		s.Players[n].Collected = true
 		err := rounds.ToCollected(ctx, b.EngineDB().DB, r.ID, r.Status, r.UpdatedAt, s)
 		if err != nil {
 			return nil, err
 		}
 	}
+
+	log.Info(ctx, "round collected", j.MKV{"round": r.Index, "player": player, "rank": res.Rank, "parts": res.Players})
 
 	return &res, nil
 }
@@ -203,12 +208,12 @@ func SumbitRound(ctx context.Context, b Backends, team, player string, roundID i
 		}
 	}
 
-	n, ms, ok := s.GetPlayer(player)
+	n, ps, ok := s.GetPlayer(player)
 	if !ok {
 		return f.err(engine.ErrUnknownPlayer)
 	}
 
-	if !ms.Included {
+	if !ps.Included {
 		return f.err(engine.ErrNonIncludedSubmit)
 	}
 
@@ -216,16 +221,18 @@ func SumbitRound(ctx context.Context, b Backends, team, player string, roundID i
 		return f.err(engine.ErrIncorrectSubmit)
 	}
 
-	if ms.Name == lastSubmitted.Name {
+	if ps.Name == lastSubmitted.Name {
 		return f.err(engine.ErrAlreadySubmitted)
 	}
 
-	if ms.Name != nextSubmit.Name {
+	if ps.Name != nextSubmit.Name {
 		return f.err(errors.Wrap(engine.ErrOutOfOrderSubmit, "wrap",
 			j.MKS{"got": player, "want": nextSubmit.Name}))
 	}
 
 	s.Players[n].Submitted = true
+
+	log.Info(ctx, "round submitted", j.MKV{"round": r.Index, "player": player, "total": total})
 
 	return rounds.ToSubmitted(ctx, b.EngineDB().DB, r.ID, r.Status, r.UpdatedAt, s)
 }
