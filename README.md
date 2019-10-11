@@ -42,10 +42,10 @@ This repo includes an example player implementation called `loser`. It only star
 Usage:
 ```
 # Start the engine with fresh DB
-go run engine/engine/main.go --db_recreate
+go run engine/engine/main.go --db_recreate --crash_ttl=0 --fate_p=0
 
 # In another tab, start a single loser player
-go run loser/loser/main.go --db_recreate --engine_address="127.0.0.1:12048"
+go run loser/loser/main.go --engine_address="127.0.0.1:12048" --crash_ttl=0 --fate_p=0
 ```
 
 ## Parts
