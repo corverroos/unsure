@@ -152,14 +152,6 @@ func (rs RoundStatus) Valid() bool {
 
 func (rs RoundStatus) ShiftStatus() {}
 
-// ThisOrNext returns true if m2 is equaled to m or it's next non-failed state.
-func (rs RoundStatus) ThisOrNext(m2 RoundStatus) bool {
-	if !m2.Valid() || m2 == RoundStatusFailed {
-		return false
-	}
-	return rs == m2 || (RoundStatus(int(rs)+1) == m2)
-}
-
 func (rs RoundStatus) ReflexType() int {
 	return engine.RoundEventOffset + int(rs) // Hack to combine Match and Round events in same table.
 }

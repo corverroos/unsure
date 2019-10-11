@@ -14,6 +14,15 @@ import (
 	"github.com/luno/jettison/log"
 )
 
+func IsAny(status internal.RoundStatus, targets ...internal.RoundStatus) bool {
+	for _, t := range targets {
+		if status == t {
+			return true
+		}
+	}
+	return false
+}
+
 func StartMatch(ctx context.Context, b Backends, team string, players int) error {
 	_, err := matches.LookupActive(ctx, b.EngineDB().DB, team)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -41,8 +50,9 @@ func JoinRound(ctx context.Context, b Backends, team, player string, roundID int
 
 	f := newFailer(ctx, b, r)
 
-	if !internal.RoundStatusJoin.ThisOrNext(r.Status) {
-		return false, f.err(engine.ErrNonReadyJoin)
+	if !IsAny(r.Status, internal.RoundStatusJoin, internal.RoundStatusJoined, internal.RoundStatusCollect) {
+		return false, f.err(errors.Wrap(engine.ErrOutOfSyncJoin, "wrap",
+			j.MKV{"status": r.Status, "player": player, "roundID": roundID}))
 	}
 
 	s := r.State
@@ -133,8 +143,9 @@ func CollectRound(ctx context.Context, b Backends, team, player string, roundID 
 
 	f := newFailer(ctx, b, r)
 
-	if !internal.RoundStatusCollect.ThisOrNext(r.Status) {
-		return nil, f.err(engine.ErrNonSetDraw)
+	if !IsAny(r.Status, internal.RoundStatusCollect, internal.RoundStatusCollected, internal.RoundStatusSubmit) {
+		return nil, f.err(errors.Wrap(engine.ErrOutOfSyncCollect, "wrap",
+			j.MKV{"status": r.Status, "player": player, "roundID": roundID}))
 	}
 
 	s := r.State
@@ -145,7 +156,7 @@ func CollectRound(ctx context.Context, b Backends, team, player string, roundID 
 	}
 
 	if !ps.Included {
-		return nil, f.err(engine.ErrNonIncludedDraw)
+		return nil, f.err(engine.ErrExcludedCollect)
 	}
 
 	res := engine.CollectRoundRes{
@@ -179,8 +190,9 @@ func SumbitRound(ctx context.Context, b Backends, team, player string, roundID i
 
 	f := newFailer(ctx, b, r)
 
-	if !internal.RoundStatusSubmit.ThisOrNext(r.Status) {
-		return f.err(engine.ErrNonGoSubmit)
+	if !IsAny(r.Status, internal.RoundStatusSubmit, internal.RoundStatusSubmitted, internal.RoundStatusSuccess) {
+		return f.err(errors.Wrap(engine.ErrOutOfSyncSubmit, "wrap",
+			j.MKV{"status": r.Status, "player": player, "roundID": roundID}))
 	}
 
 	s := r.State
@@ -214,7 +226,7 @@ func SumbitRound(ctx context.Context, b Backends, team, player string, roundID i
 	}
 
 	if !ps.Included {
-		return f.err(engine.ErrNonIncludedSubmit)
+		return f.err(engine.ErrExcludedSubmit)
 	}
 
 	if total != s.GetTotal(player) {

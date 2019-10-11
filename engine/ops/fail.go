@@ -2,6 +2,7 @@ package ops
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/corverroos/unsure/engine"
 	"github.com/corverroos/unsure/engine/db/rounds"
@@ -15,15 +16,14 @@ import (
 var roundFailErrors = map[error]bool{
 	engine.ErrActiveMatch:       false,
 	engine.ErrNoActiveMatch:     false,
-	engine.ErrNonReadyJoin:      true,
-	engine.ErrNonGoSubmit:       true,
-	engine.ErrNonSetDraw:        true,
+	engine.ErrOutOfSyncJoin:     true,
+	engine.ErrOutOfSyncSubmit:   true,
+	engine.ErrOutOfSyncCollect:  true,
 	engine.ErrAlreadyJoined:     false,
 	engine.ErrUnknownPlayer:     true,
-	engine.ErrOutOfOrderSubmit:  true,
 	engine.ErrIncorrectSubmit:   true,
-	engine.ErrNonIncludedDraw:   true,
-	engine.ErrNonIncludedSubmit: true,
+	engine.ErrExcludedCollect:   true,
+	engine.ErrExcludedSubmit:    true,
 	engine.ErrAlreadySubmitted:  false,
 	engine.ErrConcurrentUpdates: false,
 	engine.ErrRoundNotFound:     false, // Cannot fail round not found
@@ -47,11 +47,17 @@ func (f failer) err(err error) error {
 		return nil
 	}
 
-	if !roundFailErrors[err] {
-		return err
+	for ferr, fail := range roundFailErrors {
+		if errors.Is(err, ferr) {
+			if !fail {
+				return err
+			} else {
+				break
+			}
+		}
 	}
-
-	err2 := rounds.ToFailed(f.ctx, f.dbc, f.r.ID, f.r.Status, f.r.UpdatedAt, err.Error())
+	msg := fmt.Sprintf("%+v", err)
+	err2 := rounds.ToFailed(f.ctx, f.dbc, f.r.ID, f.r.Status, f.r.UpdatedAt, msg)
 	if err2 != nil {
 		return errors.Wrap(err2, "error failing round", j.KS("errMsg", err.Error()))
 	}

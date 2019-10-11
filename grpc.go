@@ -123,16 +123,10 @@ type serverStream struct {
 }
 
 func (ss *serverStream) SendMsg(m interface{}) error {
-	if err := temptCtx(ss.Context()); err != nil {
-		return err
-	}
 	return ss.ServerStream.SendMsg(m)
 }
 
 func (ss *serverStream) RecvMsg(m interface{}) error {
-	if err := temptCtx(ss.Context()); err != nil {
-		return err
-	}
 	return ss.ServerStream.RecvMsg(m)
 }
 
@@ -147,15 +141,9 @@ type clientStream struct {
 }
 
 func (ss *clientStream) SendMsg(m interface{}) error {
-	if err := temptCtx(ss.ctx); err != nil {
-		return err
-	}
 	return ss.ClientStream.SendMsg(m)
 }
 
 func (ss *clientStream) RecvMsg(m interface{}) error {
-	if err := temptCtx(ss.ctx); err != nil {
-		return err
-	}
 	return ss.ClientStream.RecvMsg(m)
 }
