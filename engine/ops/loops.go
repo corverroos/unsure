@@ -14,6 +14,8 @@ import (
 	"github.com/corverroos/unsure/engine/db/rounds"
 	"github.com/corverroos/unsure/engine/internal"
 	"github.com/luno/fate"
+	"github.com/luno/jettison/j"
+	"github.com/luno/jettison/log"
 	"github.com/luno/reflex"
 )
 
@@ -135,10 +137,12 @@ func makeStartRound(b Backends, n int) consumeReq {
 			return err
 		}
 
+		log.Info(ctx, "round started", j.MKV{"index": n})
+
 		return fate.Tempt()
 	}
 
-	delay := rand.Intn(1 + (n * 5)) // Max n * 5 secs, min 1 sec.
+	delay := rand.Intn(1 + (n * 1)) // Max n * 1 secs, min 1 sec.
 	delayS := time.Second * time.Duration(delay)
 
 	name := reflex.ConsumerName(fmt.Sprintf(consumerStartRound, n))
