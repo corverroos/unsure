@@ -72,7 +72,7 @@ func maybeCompleteMatch(ctx context.Context, b Backends, matchID int64) error {
 		return err
 	}
 
-	if len(rl) < maxRounds {
+	if len(rl) < *roundCount {
 		// Not all rounds started.
 		return nil
 	}

@@ -2,6 +2,7 @@ package ops
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"math/rand"
 	"time"
@@ -17,13 +18,16 @@ import (
 )
 
 const (
-	maxRounds          = 10
 	roundStatusTimeout = time.Minute // Timeout a round after this duration in single state.
 
 	consumerStartRound    = "engine_start_round_%d"
 	consumerTimeoutRound  = "engine_timeout_round_%s"
 	consumerAdvanceRound  = "engine_advance_round_%s"
 	consumerMatchComplete = "engine_complete_match"
+)
+
+var (
+	roundCount = flag.Int("rounds", 10, "number of rounds per match")
 )
 
 func StartLoops(b Backends) {
@@ -42,7 +46,7 @@ func StartLoops(b Backends) {
 		makeCompleteMatch(b),
 	}
 
-	for i := 0; i < maxRounds; i++ {
+	for i := 0; i < *roundCount; i++ {
 		reqs = append(reqs, makeStartRound(b, i))
 	}
 
