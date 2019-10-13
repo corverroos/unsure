@@ -81,16 +81,26 @@ func Fatal(err error) {
 	shutdown()
 }
 
+const (
+	noColor    = "%s"
+	errorColor = "\033[1;31m%s\033[0m"
+)
+
 type logger struct {
 	*llog.Logger
 }
 
 func (logger *logger) Log(l log.Log) string {
-	logger.Printf("[%s] %s: %s",
-		strings.ToUpper(string(l.Level)),
+	text := fmt.Sprintf("%s %s %s: %s",
+		strings.ToUpper(string(l.Level))[:1],
+		l.Timestamp.Format("15-04-05.000"),
 		makePrefix(l.Source),
 		makeMsg(l),
 	)
+	if l.Level == log.LevelError {
+		text = fmt.Sprintf(errorColor, text)
+	}
+	logger.Print(text)
 
 	return ""
 }
@@ -124,4 +134,11 @@ func makePrefix(source string) string {
 	}
 
 	return strings.Join(res, ".")
+}
+
+// Surify disables fate errors and crashing.
+func Surify() {
+	*crashTTL = 0
+	*cheatFate = true
+	*defaultFateP = 0
 }
