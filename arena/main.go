@@ -12,6 +12,8 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"sync"
+	"syscall"
 	"time"
 
 	"github.com/corverroos/unsure"
@@ -71,33 +73,65 @@ func main() {
 	l := Level(*levelf)
 	ctx, done := lifeCtx()
 
-	outs := map[int]io.Writer{
-		-1: getOut(-1),
-	}
+	out := new(output)
 
 	if *initCmd != "" {
 		log.Info(ctx, "Running init command", j.KV("cmd", *initCmd))
-		_, err := exec.Command(*initCmd).CombinedOutput()
+		out, err := exec.Command(*initCmd).CombinedOutput()
 		if err != nil {
-			log.Error(ctx, errors.Wrap(err, "prep command error"))
+			log.Error(ctx, errors.Wrap(err, "prep command error", j.KV("out", string(out))))
 			return
 		}
 	}
 
-	go runEngine(ctx, done, l, outs[-1])
+	fork(func() {
+		runEngine(ctx, done, l, out.make(-1))
+	})
 
 	// Allow server to start up
 	time.Sleep(time.Second)
 
 	for i := 0; i < l.Players(); i++ {
-		outs[i] = getOut(i)
-		go runPlayer(ctx, done, l, outs[i], i)
+		ii := i
+		fork(func() {
+			runPlayer(ctx, done, l, out.make(ii), ii)
+		})
 	}
 
 	unsure.WaitForShutdown()
 }
 
-func getOut(index int) io.Writer {
+type output struct {
+	writers map[int]io.WriteCloser
+	mu      sync.Mutex
+}
+
+func (o *output) make(index int) io.WriteCloser {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+
+	out := getOut(index)
+
+	if o.writers == nil {
+		o.writers = make(map[int]io.WriteCloser)
+	}
+	o.writers[index] = out
+	return out
+}
+
+// fork starts a go routine calling fn, it also registers a waitgroup blocking shutdown until the function exits.
+func fork(fn func()) {
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	unsure.RegisterNoErr(wg.Wait)
+	go func() {
+		fn()
+		wg.Done()
+	}()
+}
+
+func getOut(index int) io.WriteCloser {
 	var name string
 	if index == -1 {
 		name = "engine.log"
@@ -126,8 +160,10 @@ func lifeCtx() (context.Context, func()) {
 	return ctx, cancel
 }
 
-func runPlayer(ctx context.Context, done func(), l Level, out io.Writer, n int) {
+func runPlayer(ctx context.Context, done func(), l Level, out io.WriteCloser, n int) {
 	defer done()
+	defer out.Close()
+
 	jopt := j.KV("index", n)
 
 	flagStr := *playerFlags
@@ -166,23 +202,30 @@ func runPlayer(ctx context.Context, done func(), l Level, out io.Writer, n int) 
 			if err != nil {
 				log.Error(ctx, errors.Wrap(err, "run player error", jopt))
 			} else {
-				log.Info(ctx, "run engine completed", jopt)
+				log.Info(ctx, "player completed", jopt)
 			}
 			return
 			// TODO(corver): Implement restarts
 
 		case <-ctx.Done():
-			err := cmd.Process.Kill()
+			err := cmd.Process.Signal(syscall.SIGTERM)
 			if err != nil {
-				log.Error(ctx, errors.Wrap(err, "error killing player", jopt))
+				log.Error(ctx, errors.Wrap(err, "error terminating player", jopt))
+			}
+
+			err = <-exit
+			if err != nil {
+				log.Error(ctx, errors.Wrap(err, "error after terminating engine"))
 			}
 			return
 		}
 	}
 }
 
-func runEngine(ctx context.Context, done func(), l Level, out io.Writer) {
+func runEngine(ctx context.Context, done func(), l Level, out io.WriteCloser) {
 	defer done()
+	defer out.Close()
+
 	first := true
 	for {
 		flags := l.UnsureFlags()
@@ -212,15 +255,20 @@ func runEngine(ctx context.Context, done func(), l Level, out io.Writer) {
 			if err != nil {
 				log.Error(ctx, errors.Wrap(err, "run engine error"))
 			} else {
-				log.Info(ctx, "run engine completed")
+				log.Info(ctx, "engine completed")
 			}
 			return
 			// TODO(corver): Implement restarts
 
 		case <-ctx.Done():
-			err := cmd.Process.Kill()
+			err := cmd.Process.Signal(syscall.SIGTERM)
 			if err != nil {
-				log.Error(ctx, errors.Wrap(err, "error killing engine"))
+				log.Error(ctx, errors.Wrap(err, "error terminating engine"))
+			}
+
+			err = <-exit
+			if err != nil {
+				log.Error(ctx, errors.Wrap(err, "error after terminating engine"))
 			}
 			return
 		}

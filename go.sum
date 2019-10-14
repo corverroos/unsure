@@ -61,8 +61,8 @@ github.com/luno/fate v0.0.0-20190906093333-f60ec39889bc/go.mod h1:vG2oK2pdu8xYXG
 github.com/luno/jettison v0.0.0-20190811153922-e0aafcbe38f5/go.mod h1:tOyVRFDlkZ5NqB7unEwcmrqMqsy+ka3DEtvwH+Q5W6g=
 github.com/luno/jettison v0.0.0-20190815135910-8324430a089d h1:nWJeDP7Ptudm4gbTcNXyp4fV9WNJWEKCrfCZXvFe2TQ=
 github.com/luno/jettison v0.0.0-20190815135910-8324430a089d/go.mod h1:tOyVRFDlkZ5NqB7unEwcmrqMqsy+ka3DEtvwH+Q5W6g=
-github.com/luno/jettison v0.0.0-20191004101118-b85c950bad04 h1:JrF9+Tb/mcJz3Ry6MPf/PozNpBb37w+sCQbkEB1CS8w=
-github.com/luno/jettison v0.0.0-20191004101118-b85c950bad04/go.mod h1:tOyVRFDlkZ5NqB7unEwcmrqMqsy+ka3DEtvwH+Q5W6g=
+github.com/luno/jettison v0.0.0-20191014084106-b0501ece4f1c h1:ELl7p64RmtilIwrQc3R/vXaV5yITUd5S/tc8nEuie10=
+github.com/luno/jettison v0.0.0-20191014084106-b0501ece4f1c/go.mod h1:tOyVRFDlkZ5NqB7unEwcmrqMqsy+ka3DEtvwH+Q5W6g=
 github.com/luno/reflex v0.0.0-20190812124310-d8005bb55d8f/go.mod h1:TRv8tLVmz0Xs2obwlSGWJ07SH4D1I4t1OrOkMmalNO8=
 github.com/luno/reflex v0.0.0-20191010085905-159383ec8c22 h1:R5wS8N2af2KcHLIw2YZB9TSUsjHZDQKiL2w+xaPH0xU=
 github.com/luno/reflex v0.0.0-20191010085905-159383ec8c22/go.mod h1:TRv8tLVmz0Xs2obwlSGWJ07SH4D1I4t1OrOkMmalNO8=
@@ -116,6 +116,7 @@ golang.org/x/arch v0.0.0-20180920145803-b19384d3c130/go.mod h1:cYlCBUl1MsqxdiKgm
 golang.org/x/crypto v0.0.0-20180904163835-0709b304e793/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20181127143415-eb0de9b17e85/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
+golang.org/x/exp v0.0.0-20190121172915-509febef88a4 h1:c2HOrn5iMezYjSlGPncknSEr/8x5LELb/ilJbXi9DEA=
 golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp/errors v0.0.0-20190306152737-a1d7652674e8/go.mod h1:YgqsNsAu4fTvlab/7uiYK9LJrCIzKg/NiZUIH1/ayqo=
 golang.org/x/exp/errors v0.0.0-20191002040644-a1355ae1e2c3 h1:MQ87Kb2SQoOutj6AxfrwAPbTcjGngk9FVlm+HOhXxl8=
@@ -137,6 +138,7 @@ golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be/go.mod h1:N/0e6XlmueqKjAG
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20181108010431-42b317875d0f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
+golang.org/x/sync v0.0.0-20190423024810-112230192c58 h1:8gQV6CLnAEikrhgkHFbMAEhagSSnXWGV915qUMm9mrU=
 golang.org/x/sync v0.0.0-20190423024810-112230192c58/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sys v0.0.0-20180830151530-49385e6e1522/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20180903190138-2b024373dcd9/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=

@@ -17,12 +17,13 @@ import (
 	"github.com/luno/jettison/j"
 	"github.com/luno/jettison/log"
 	"github.com/luno/reflex"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
 	roundStatusTimeout = time.Minute // Timeout a round after this duration in single state.
 
-	consumerStartRound    = "engine_start_round_%d"
+	consumerStartRound    = "engine_start_rounds"
 	consumerTimeoutRound  = "engine_timeout_round_%s"
 	consumerAdvanceRound  = "engine_advance_round_%s"
 	consumerMatchComplete = "engine_complete_match"
@@ -46,10 +47,7 @@ func StartLoops(b Backends) {
 		makeAdvanceRound(b, internal.RoundStatusSubmitted),
 
 		makeCompleteMatch(b),
-	}
-
-	for i := 0; i < *roundCount; i++ {
-		reqs = append(reqs, makeStartRound(b, i))
+		makeStartRounds(b, *roundCount),
 	}
 
 	// Internal engine events consumable.
@@ -125,29 +123,44 @@ func makeTimeoutRound(b Backends, status internal.RoundStatus) consumeReq {
 	return newConsumeReq(name, f, reflex.WithStreamLag(roundStatusTimeout))
 }
 
-// makeStartRound returns a consumeReq that starts a new round (n) after
+// makeStartRounds returns a consumeReq that starts a new round (n) after
 // a random delay after a MatchStarted event.
-func makeStartRound(b Backends, n int) consumeReq {
+func makeStartRounds(b Backends, count int) consumeReq {
 	f := func(ctx context.Context, f fate.Fate, e *reflex.Event) error {
 		if !reflex.IsType(e.Type, engine.EventTypeMatchStarted) {
 			return nil
 		}
 
-		if err := startRound(ctx, b, e.ForeignIDInt(), n); err != nil {
-			return err
+		var eg errgroup.Group
+		for i := 0; i < count; i++ {
+			ii := i
+
+			// Start rounds in random order
+			eg.Go(func() error {
+				millis := rand.Intn(1000)
+				time.Sleep(time.Millisecond * time.Duration(millis))
+
+				if err := startRound(ctx, b, e.ForeignIDInt(), ii); err != nil {
+					return err
+				}
+
+				log.Info(ctx, "round started", j.MKV{"index": ii})
+
+				return fate.Tempt()
+			})
 		}
 
-		log.Info(ctx, "round started", j.MKV{"index": n})
+		err := eg.Wait()
+		if err != nil {
+			return err
+		}
 
 		return fate.Tempt()
 	}
 
-	delay := rand.Intn(1 + (n * 1)) // Max n * 1 secs, min 1 sec.
-	delayS := time.Second * time.Duration(delay)
+	name := reflex.ConsumerName(consumerStartRound)
 
-	name := reflex.ConsumerName(fmt.Sprintf(consumerStartRound, n))
-
-	return newConsumeReq(name, f, reflex.WithStreamLag(delayS))
+	return newConsumeReq(name, f)
 }
 
 type consumeReq struct {

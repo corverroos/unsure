@@ -93,7 +93,7 @@ type logger struct {
 func (logger *logger) Log(l log.Log) string {
 	text := fmt.Sprintf("%s %s %s: %s",
 		strings.ToUpper(string(l.Level))[:1],
-		l.Timestamp.Format("15-04-05.000"),
+		l.Timestamp.Format("150405.000"),
 		makePrefix(l.Source),
 		makeMsg(l),
 	)
