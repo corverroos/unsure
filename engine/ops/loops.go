@@ -14,6 +14,7 @@ import (
 	"github.com/corverroos/unsure/engine/db/rounds"
 	"github.com/corverroos/unsure/engine/internal"
 	"github.com/luno/fate"
+	"github.com/luno/jettison/errors"
 	"github.com/luno/jettison/j"
 	"github.com/luno/jettison/log"
 	"github.com/luno/reflex"
@@ -27,6 +28,7 @@ const (
 	consumerTimeoutRound  = "engine_timeout_round_%s"
 	consumerAdvanceRound  = "engine_advance_round_%s"
 	consumerMatchComplete = "engine_complete_match"
+	consumerExitOnMatch   = "engine_exit_match_end"
 )
 
 var (
@@ -47,6 +49,7 @@ func StartLoops(b Backends) {
 		makeAdvanceRound(b, internal.RoundStatusSubmitted),
 
 		makeCompleteMatch(b),
+		makeExitOnEnded(),
 		makeStartRounds(b, *roundCount),
 	}
 
@@ -58,6 +61,19 @@ func StartLoops(b Backends) {
 	for _, req := range reqs {
 		startConsume(b, consumable, req)
 	}
+}
+
+// makeExitOnEnded returns a consumeReq that exists on match ended.
+func makeExitOnEnded() consumeReq {
+	f := func(ctx context.Context, f fate.Fate, e *reflex.Event) error {
+		if !reflex.IsType(e.Type, engine.EventTypeMatchEnded) {
+			return nil
+		}
+		unsure.Fatal(errors.New("exit on match ended"))
+		return nil
+	}
+
+	return newConsumeReq(consumerExitOnMatch, f)
 }
 
 // makeAdvanceRound returns a consumeReq that times out a round if it too long in

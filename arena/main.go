@@ -20,6 +20,7 @@ import (
 	"github.com/luno/jettison/errors"
 	"github.com/luno/jettison/j"
 	"github.com/luno/jettison/log"
+	promio "github.com/prometheus/client_model/go"
 )
 
 var (
@@ -50,10 +51,11 @@ var (
 
 type Level int
 
-func (l Level) UnsureFlags() []string {
+func (l Level) UnsureFlags(promJob string) []string {
 	return []string{
 		fmt.Sprintf("--fate_p=%0.2f", levels[l].FateP),
 		fmt.Sprintf("--crash_ttl=%ds", levels[l].CrashTTL),
+		fmt.Sprintf("--prom_job=%s", promJob),
 	}
 }
 func (l Level) EngineFlags() []string {
@@ -79,8 +81,7 @@ func main() {
 		log.Info(ctx, "Running init command", j.KV("cmd", *initCmd))
 		out, err := exec.Command(*initCmd).CombinedOutput()
 		if err != nil {
-			log.Error(ctx, errors.Wrap(err, "prep command error", j.KV("out", string(out))))
-			return
+			unsure.Fatal(errors.Wrap(err, "prep command error", j.KV("out", string(out))))
 		}
 	}
 
@@ -98,7 +99,70 @@ func main() {
 		})
 	}
 
+	if err := collectMetrics(ctx); err != nil {
+		unsure.Fatal(errors.Wrap(err, "collect metrics"))
+	}
+
 	unsure.WaitForShutdown()
+}
+
+func collectMetrics(ctx context.Context) error {
+	ms, err := unsure.StartPromServer()
+	if err != nil {
+		return err
+	}
+
+	unsure.RegisterShutdown(func() error {
+		d := time.Second
+		log.Info(ctx, "Waiting to stop prometheus server", j.MKV{"delay": d})
+		time.Sleep(d)
+		return ms.Shutdown()
+	})
+
+	unsure.RegisterShutdown(func() error {
+		toLog := map[string]bool{
+			"engine_match_rounds_success":          true,
+			"engine_match_rounds_failure":          true,
+			"engine_match_rounds_duration_seconds": true,
+			"fate_tempt_total":                     true,
+			"fate_tempt_error_total":               true,
+			"unsure_reflex_soft_errored_total":     true,
+			"unsure_reflex_hard_errored_total":     true,
+		}
+		for _, fam := range ms.GetMetricFamilies() {
+			if !toLog[*fam.Name] {
+				continue
+			}
+			for _, m := range fam.Metric {
+				switch *fam.Type {
+				case promio.MetricType_COUNTER:
+					log.Info(ctx, "Counter "+*fam.Name, j.MKV{
+						"value": *m.Counter.Value,
+					}, labelOpts(m.Label))
+				case promio.MetricType_HISTOGRAM:
+					log.Info(ctx, "Histogr "+*fam.Name, j.MKV{
+						"count": *m.Histogram.SampleCount,
+						"sum":   *m.Histogram.SampleSum,
+					}, labelOpts(m.Label))
+				}
+
+			}
+		}
+		return nil
+	})
+
+	return nil
+}
+
+func labelOpts(labels []*promio.LabelPair) j.MKV {
+	res := make(j.MKV)
+	for _, l := range labels {
+		if *l.Name == "instance" {
+			continue
+		}
+		res[*l.Name] = *l.Value
+	}
+	return res
 }
 
 type output struct {
@@ -172,7 +236,7 @@ func runPlayer(ctx context.Context, done func(), l Level, out io.WriteCloser, n 
 
 	first := true
 	for {
-		flags := l.UnsureFlags()
+		flags := l.UnsureFlags(fmt.Sprintf("player%d", n))
 		flags = append(flags, "--engine_address=127.0.0.1:12048")
 		if first {
 			flags = append(flags, "--db_recreate")
@@ -228,7 +292,7 @@ func runEngine(ctx context.Context, done func(), l Level, out io.WriteCloser) {
 
 	first := true
 	for {
-		flags := l.UnsureFlags()
+		flags := l.UnsureFlags("engine")
 		flags = append(flags, l.EngineFlags()...)
 		if first {
 			flags = append(flags, "--db_recreate")

@@ -78,9 +78,9 @@ func maybeCompleteMatch(ctx context.Context, b Backends, matchID int64) error {
 		return nil
 	}
 
-	first := time.Now()
-	var last time.Time
+	var sum, max time.Duration
 	var success, failed int
+
 	for _, r := range rl {
 		if r.Status == internal.RoundStatusSuccess {
 			success++
@@ -90,23 +90,28 @@ func maybeCompleteMatch(ctx context.Context, b Backends, matchID int64) error {
 			// Not all rounds complete, so just return.
 			return nil
 		}
-		if r.UpdatedAt.After(last) {
-			last = r.UpdatedAt
+		d := r.UpdatedAt.Sub(r.CreatedAt)
+		if d > max {
+			max = d
 		}
-		if r.CreatedAt.Before(first) {
-			first = r.CreatedAt
-		}
+		sum += d
+		roundsDurationHist.WithLabelValues().Observe(d.Seconds())
 	}
 
-	d := last.Sub(first)
+	avg := time.Duration(int(sum) / len(rl))
 
 	s := internal.MatchSummary{
-		RoundsSuccess: success,
-		RoundsFailed:  failed,
-		Duration:      last.Sub(first),
+		RoundSuccess:     success,
+		RoundFailed:      failed,
+		RoundDurationMax: max,
+		RoundDurationAvg: avg,
 	}
 
-	log.Info(ctx, "match completed", j.MKV{"team": m.Team, "success": success, "fail": failed, "duration": d})
+	roundsSuccessHist.WithLabelValues().Observe(float64(success))
+	roundsFailedHist.WithLabelValues().Observe(float64(failed))
+
+	log.Info(ctx, "match completed", j.MKV{"team": m.Team, "success": success, "fail": failed,
+		"max": s.RoundDurationMax, "avg": s.RoundDurationAvg})
 
 	return matches.EndMatch(ctx, dbc, matchID, s)
 }

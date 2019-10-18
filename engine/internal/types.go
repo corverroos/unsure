@@ -117,9 +117,10 @@ const (
 )
 
 type MatchSummary struct {
-	RoundsSuccess int
-	RoundsFailed  int
-	Duration      time.Duration
+	RoundSuccess     int
+	RoundFailed      int
+	RoundDurationMax time.Duration
+	RoundDurationAvg time.Duration
 }
 
 func (ms MatchSummary) Value() (driver.Value, error) {
@@ -131,11 +132,16 @@ func (ms *MatchSummary) Scan(src interface{}) error {
 	if err := s.Scan(src); err != nil {
 		return err
 	}
-	*ms = MatchSummary{}
 	if !s.Valid {
 		return nil
 	}
-	return json.Unmarshal([]byte(s.String), ms)
+
+	var summ MatchSummary
+	if err := json.Unmarshal([]byte(s.String), &summ); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 //go:generate stringer -type=RoundStatus -trimprefix=RoundStatus

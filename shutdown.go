@@ -37,7 +37,7 @@ func (r *Registry) Shutdown() error {
 	r.mu.Unlock()
 
 	if shuttingDown {
-		return errors.New("already shutting down")
+		return nil
 	}
 
 	var anyErr error

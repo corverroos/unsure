@@ -34,6 +34,7 @@ func Bootstrap() {
 	flag.Parse()
 	initJettisonLogger()
 	rand.Seed(time.Now().UnixNano())
+	RegisterShutdown(pushMetrics)
 }
 
 func initJettisonLogger() {
