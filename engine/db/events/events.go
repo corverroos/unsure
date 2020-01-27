@@ -23,6 +23,6 @@ func ToStream(dbc *sql.DB) reflex.StreamFunc {
 	return events.ToStream(dbc)
 }
 
-func GetTable() rsql.EventsTableInt {
+func GetTable() *rsql.EventsTableInt {
 	return events
 }

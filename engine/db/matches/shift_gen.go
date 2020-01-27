@@ -22,7 +22,7 @@ func (一 startReq) Insert(ctx context.Context, tx *sql.Tx,st shift.Status) (int
 	)
 
 	q.WriteString("insert into engine_matches set `status`=?, `created_at`=?, `updated_at`=? ")
-	args = append(args, st.Enum(), time.Now(), time.Now())
+	args = append(args, st.ShiftStatus(), time.Now(), time.Now())
 
 	q.WriteString(", `team`=?")
 	args = append(args, 一.Team)
@@ -53,13 +53,13 @@ func (一 endReq) Update(ctx context.Context, tx *sql.Tx,from shift.Status,
 	)
 
 	q.WriteString("update engine_matches set `status`=?, `updated_at`=? ")
-	args = append(args, to.Enum(), time.Now())
+	args = append(args, to.ShiftStatus(), time.Now())
 
 	q.WriteString(", `summary`=?")
 	args = append(args, 一.Summary)
 
 	q.WriteString(" where `id`=? and `status`=?")
-	args = append(args, 一.ID, from.Enum())
+	args = append(args, 一.ID, from.ShiftStatus())
 
 	res, err := tx.ExecContext(ctx, q.String(), args...)
 	if err != nil {

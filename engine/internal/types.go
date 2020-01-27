@@ -99,11 +99,9 @@ type RoundPlayerState struct {
 
 type MatchStatus int
 
-func (m MatchStatus) Enum() int {
+func (m MatchStatus) ShiftStatus() int {
 	return int(m)
 }
-
-func (m MatchStatus) ShiftStatus() {}
 
 func (m MatchStatus) ReflexType() int {
 	return int(m)
@@ -148,15 +146,13 @@ func (ms *MatchSummary) Scan(src interface{}) error {
 
 type RoundStatus int
 
-func (rs RoundStatus) Enum() int {
-	return int(rs)
-}
-
 func (rs RoundStatus) Valid() bool {
 	return rs > RoundStatusUnknown && rs < roundStatusSentinel
 }
 
-func (rs RoundStatus) ShiftStatus() {}
+func (rs RoundStatus) ShiftStatus() int {
+	return int(rs)
+}
 
 func (rs RoundStatus) ReflexType() int {
 	return engine.RoundEventOffset + int(rs) // Hack to combine Match and Round events in same table.

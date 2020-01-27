@@ -22,7 +22,7 @@ func (一 joinReq) Insert(ctx context.Context, tx *sql.Tx,st shift.Status) (int6
 	)
 
 	q.WriteString("insert into engine_rounds set `status`=?, created_at=?, updated_at=? ")
-	args = append(args, st.Enum(), time.Now(), time.Now())
+	args = append(args, st.ShiftStatus(), time.Now(), time.Now())
 
 	q.WriteString(", `match_id`=?")
 	args = append(args, 一.MatchID)
@@ -56,13 +56,13 @@ func (一 joinedReq) Update(ctx context.Context, tx *sql.Tx,from shift.Status,
 	)
 
 	q.WriteString("update engine_rounds set `status`=?, updated_at=? ")
-	args = append(args, to.Enum(), time.Now())
+	args = append(args, to.ShiftStatus(), time.Now())
 
 	q.WriteString(", `state`=?")
 	args = append(args, 一.State)
 
 	q.WriteString(" where id=? and `status`=?")
-	args = append(args, 一.ID, from.Enum())
+	args = append(args, 一.ID, from.ShiftStatus())
 
 	res, err := tx.ExecContext(ctx, q.String(), args...)
 	if err != nil {
@@ -90,13 +90,13 @@ func (一 collectReq) Update(ctx context.Context, tx *sql.Tx,from shift.Status,
 	)
 
 	q.WriteString("update engine_rounds set `status`=?, updated_at=? ")
-	args = append(args, to.Enum(), time.Now())
+	args = append(args, to.ShiftStatus(), time.Now())
 
 	q.WriteString(", `state`=?")
 	args = append(args, 一.State)
 
 	q.WriteString(" where id=? and `status`=?")
-	args = append(args, 一.ID, from.Enum())
+	args = append(args, 一.ID, from.ShiftStatus())
 
 	res, err := tx.ExecContext(ctx, q.String(), args...)
 	if err != nil {
@@ -124,13 +124,13 @@ func (一 collectedReq) Update(ctx context.Context, tx *sql.Tx,from shift.Status
 	)
 
 	q.WriteString("update engine_rounds set `status`=?, updated_at=? ")
-	args = append(args, to.Enum(), time.Now())
+	args = append(args, to.ShiftStatus(), time.Now())
 
 	q.WriteString(", `state`=?")
 	args = append(args, 一.State)
 
 	q.WriteString(" where id=? and `status`=?")
-	args = append(args, 一.ID, from.Enum())
+	args = append(args, 一.ID, from.ShiftStatus())
 
 	res, err := tx.ExecContext(ctx, q.String(), args...)
 	if err != nil {
@@ -158,10 +158,10 @@ func (一 submitReq) Update(ctx context.Context, tx *sql.Tx,from shift.Status,
 	)
 
 	q.WriteString("update engine_rounds set `status`=?, updated_at=? ")
-	args = append(args, to.Enum(), time.Now())
+	args = append(args, to.ShiftStatus(), time.Now())
 
 	q.WriteString(" where id=? and `status`=?")
-	args = append(args, 一.ID, from.Enum())
+	args = append(args, 一.ID, from.ShiftStatus())
 
 	res, err := tx.ExecContext(ctx, q.String(), args...)
 	if err != nil {
@@ -189,13 +189,13 @@ func (一 submittedReq) Update(ctx context.Context, tx *sql.Tx,from shift.Status
 	)
 
 	q.WriteString("update engine_rounds set `status`=?, updated_at=? ")
-	args = append(args, to.Enum(), time.Now())
+	args = append(args, to.ShiftStatus(), time.Now())
 
 	q.WriteString(", `state`=?")
 	args = append(args, 一.State)
 
 	q.WriteString(" where id=? and `status`=?")
-	args = append(args, 一.ID, from.Enum())
+	args = append(args, 一.ID, from.ShiftStatus())
 
 	res, err := tx.ExecContext(ctx, q.String(), args...)
 	if err != nil {
@@ -223,10 +223,10 @@ func (一 successReq) Update(ctx context.Context, tx *sql.Tx,from shift.Status,
 	)
 
 	q.WriteString("update engine_rounds set `status`=?, updated_at=? ")
-	args = append(args, to.Enum(), time.Now())
+	args = append(args, to.ShiftStatus(), time.Now())
 
 	q.WriteString(" where id=? and `status`=?")
-	args = append(args, 一.ID, from.Enum())
+	args = append(args, 一.ID, from.ShiftStatus())
 
 	res, err := tx.ExecContext(ctx, q.String(), args...)
 	if err != nil {
@@ -254,13 +254,13 @@ func (一 failedReq) Update(ctx context.Context, tx *sql.Tx,from shift.Status,
 	)
 
 	q.WriteString("update engine_rounds set `status`=?, updated_at=? ")
-	args = append(args, to.Enum(), time.Now())
+	args = append(args, to.ShiftStatus(), time.Now())
 
 	q.WriteString(", `error`=?")
 	args = append(args, 一.Error)
 
 	q.WriteString(" where id=? and `status`=?")
-	args = append(args, 一.ID, from.Enum())
+	args = append(args, 一.ID, from.ShiftStatus())
 
 	res, err := tx.ExecContext(ctx, q.String(), args...)
 	if err != nil {

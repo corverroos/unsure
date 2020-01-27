@@ -10,9 +10,9 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/luno/fate v0.0.0-20190906093333-f60ec39889bc
-	github.com/luno/jettison v0.0.0-20191014084106-b0501ece4f1c
-	github.com/luno/reflex v0.0.0-20191010085905-159383ec8c22
-	github.com/luno/shift v0.0.0-20190912102423-a69494119072
+	github.com/luno/jettison v0.0.0-20191223144501-7fe4a971f291
+	github.com/luno/reflex v0.0.0-20191217150610-7e0cb14bb33a
+	github.com/luno/shift v0.0.0-20191125062945-5e49f347fa26
 	github.com/prometheus/client_golang v1.2.0
 	github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4
 	github.com/prometheus/pushgateway v1.0.0
@@ -25,5 +25,4 @@ require (
 	google.golang.org/genproto v0.0.0-20191007204434-a023cd5227bd // indirect
 	google.golang.org/grpc v1.24.0
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
-	gopkg.in/yaml.v2 v2.2.4 // indirect
 )

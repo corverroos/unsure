@@ -19,16 +19,16 @@ func ConsumeForever(getCtx func() context.Context, consume reflex.ConsumeFunc,
 
 		err := consume(ctx, consumer, opts...)
 		if errors.IsAny(err, context.Canceled, context.DeadlineExceeded, reflex.ErrStopped, fate.ErrTempt) {
-			reflexSoftErrorCounter.WithLabelValues(consumer.Name().String()).Inc()
+			reflexSoftErrorCounter.WithLabelValues(consumer.Name()).Inc()
 			// Just retry on expected errors.
 			time.Sleep(time.Millisecond * 100) // Don't spin
 			continue
 		}
 
-		reflexHardErrorCounter.WithLabelValues(consumer.Name().String()).Inc()
+		reflexHardErrorCounter.WithLabelValues(consumer.Name()).Inc()
 
 		log.Error(ctx, errors.Wrap(err, "consume forever error"),
-			jettison.WithKeyValueString("consumer", consumer.Name().String()))
+			jettison.WithKeyValueString("consumer", consumer.Name()))
 		time.Sleep(time.Second) // 1 sec backoff on errors
 	}
 }

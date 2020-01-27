@@ -114,7 +114,7 @@ func makeAdvanceRound(b Backends, status internal.RoundStatus) consumeReq {
 		return fate.Tempt()
 	}
 
-	name := reflex.ConsumerName(fmt.Sprintf(consumerAdvanceRound, status.String()))
+	name := fmt.Sprintf(consumerAdvanceRound, status.String())
 
 	return newConsumeReq(name, f)
 }
@@ -134,7 +134,7 @@ func makeTimeoutRound(b Backends, status internal.RoundStatus) consumeReq {
 		return fate.Tempt()
 	}
 
-	name := reflex.ConsumerName(fmt.Sprintf(consumerTimeoutRound, status.String()))
+	name := fmt.Sprintf(consumerTimeoutRound, status.String())
 
 	return newConsumeReq(name, f, reflex.WithStreamLag(roundStatusTimeout))
 }
@@ -174,19 +174,17 @@ func makeStartRounds(b Backends, count int) consumeReq {
 		return fate.Tempt()
 	}
 
-	name := reflex.ConsumerName(consumerStartRound)
-
-	return newConsumeReq(name, f)
+	return newConsumeReq(consumerStartRound, f)
 }
 
 type consumeReq struct {
-	name  reflex.ConsumerName
+	name  string
 	f     func(ctx context.Context, f fate.Fate, e *reflex.Event) error
 	copts []reflex.ConsumerOption
 	sopts []reflex.StreamOption
 }
 
-func newConsumeReq(name reflex.ConsumerName, f func(ctx context.Context, f fate.Fate, e *reflex.Event) error,
+func newConsumeReq(name string, f func(ctx context.Context, f fate.Fate, e *reflex.Event) error,
 	opts ...reflex.StreamOption) consumeReq {
 	return consumeReq{
 		name:  name,
