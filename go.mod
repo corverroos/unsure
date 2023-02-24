@@ -19,8 +19,8 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/xo/dburl v0.0.0-20191005012637-293c3298d6c0
 	golang.org/x/exp/errors v0.0.0-20191002040644-a1355ae1e2c3 // indirect
-	golang.org/x/net v0.0.0-20191009170851-d66e71096ffb
-	golang.org/x/sync v0.0.0-20190423024810-112230192c58
+	golang.org/x/net v0.7.0
+	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
 	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/genproto v0.0.0-20191007204434-a023cd5227bd // indirect
 	google.golang.org/grpc v1.24.0
